@@ -1,5 +1,3 @@
-require 'pp'
-
 data = File.readlines(ARGV[0])
 
 wire1 = data[0].strip.split(",")
