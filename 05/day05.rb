@@ -1,5 +1,3 @@
-require 'pp'
-
 data = File.read(ARGV[0]).split(",").map { |n| n.to_i }
 
 class Computer
@@ -22,10 +20,7 @@ class Computer
                (mem[ip] / 10_000) % 10]
 
       _, a, b, c = mem[ip, 4]
-      if opcode != 3 then
-        a = mem[a] if a && modes[0] == 0
-      end
-
+      a = mem[a] if a && modes[0] == 0
       b = mem[b] if b && modes[1] == 0
 
       case opcode
@@ -34,42 +29,29 @@ class Computer
       when 2
         mem[c] = a * b
       when 3
-        mem[a] = get_input
+        mem[mem[ip + 1]] = get_input
       when 4
         put_output a
-
       when 5
         if a != 0
           ip = b
-          update_ip = false
+          next
         end
       when 6
         if a == 0
           ip = b
-          update_ip = false
+          next
         end
       when 7
-        if a < b
-          mem[c] = 1
-        else
-          mem[c] = 0
-        end
+        mem[c] = a < b ? 1 : 0
       when 8
-        if a == b
-          mem[c] = 1
-        else
-          mem[c] = 0
-        end
+        mem[c] = a == b ? 1 : 0
       when 99
-        break
+        return mem[0]
       end
 
-      if update_ip
-        ip += PARAM_COUNT[opcode]
-      end
+      ip += PARAM_COUNT[opcode]
     end
-
-    mem[0]
   end
 
   def get_input
