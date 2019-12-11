@@ -1,8 +1,5 @@
-require 'pp'
-DEBUG = false
-
 class Computer
-  attr_accessor :input, :output, :mem
+  attr_accessor :input, :output, :mem, :loopy_mode
 
   PARAM_COUNT = {1 => 4, 2 => 4, # Add, Multiply
                  3 => 2, 4 => 2, # Get, Set
@@ -14,28 +11,23 @@ class Computer
     @input = []
     @mem = mem
     @ip = 0
-    @halted = false
+    @halted = nil
   end
 
   def reset mem
-    @input = []
     @mem = mem
+    @input = []
     @ip = 0
-    @halted = false
   end
 
   def run
+    @halted = false
+
     loop do
       opcode = @mem[@ip] % 100
       modes = [(@mem[@ip] / 100) % 10,
                (@mem[@ip] / 1_000) % 10,
                (@mem[@ip] / 10_000) % 10]
-
-      if DEBUG
-        pp "Instruction: #{@mem[@ip]}"
-        pp "Opcode: #{opcode}"
-        pp "Modes: #{modes}"
-      end
 
       _, a, b, c = @mem[@ip, 4]
       a = @mem[a] if a && modes[0] == 0
@@ -51,8 +43,6 @@ class Computer
         @mem[@mem[@ip + 1]] = x
       when 4
         put_output a
-        @ip += PARAM_COUNT[opcode]
-        return a
       when 5
         if a != 0
           @ip = b
@@ -68,17 +58,12 @@ class Computer
       when 8
         @mem[c] = a == b ? 1 : 0
       when 99
-        puts "HALTING" if DEBUG
         @halted = true
         return
       end
 
       @ip += PARAM_COUNT[opcode]
     end
-  end
-
-  def debug
-    pp "DEBUGGING OUTPUT: Current input #{@input} IP #{@ip}"
   end
 
   def halted?
